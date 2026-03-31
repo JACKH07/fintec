@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PayWest – Création de compte</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0B0F1A;--sf:#10152A;--sf2:#161C2D;--bd:#252D45;
+  --tx:#F0F2F8;--tx2:#D8DCF0;--mu:#5A6480;
+  --pr:#4A7BF0;--ok:#4CC87A;--er:#F05A5A;--wa:#F0A84A;
+  --orange:#FF6600;--mtn:#FFCC00;--wave:#1FA9E0;
+}
+body{background:#0d1020;display:flex;gap:28px;padding:28px;font-family:-apple-system,'SF Pro Display',sans-serif;justify-content:center;flex-wrap:wrap;align-items:flex-start;min-height:100vh;}
+
+/* PHONE */
+.phone{width:390px;height:844px;background:var(--bg);border-radius:44px;overflow:hidden;position:relative;border:8px solid #181828;box-shadow:0 32px 90px rgba(0,0,0,.8);flex-shrink:0;}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#09090f;border-radius:0 0 20px 20px;z-index:100;}
+.stb{position:absolute;top:0;left:0;right:0;height:50px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 8px;z-index:10;font-size:12px;font-weight:600;color:var(--tx);pointer-events:none;}
+.scr{position:absolute;top:0;left:0;right:0;bottom:0;display:none;flex-direction:column;overflow:hidden;animation:fadeIn .25s ease;}
+.scr.on{display:flex;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.st{height:50px;flex-shrink:0;}
+.sa{flex:1;overflow-y:auto;overflow-x:hidden;}
+.sa::-webkit-scrollbar{display:none;}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;flex-shrink:0;}
+.tt{font-size:17px;font-weight:600;color:var(--tx);}
+.ic{width:36px;height:36px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;}
+.ic:hover{background:var(--bd);}
+
+/* Forms */
+.inp{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:13px 16px;font-size:14px;color:var(--tx);width:100%;outline:none;font-family:inherit;transition:border-color .2s;}
+.inp:focus{border-color:var(--pr);}
+.inp::placeholder{color:var(--mu);}
+select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235A6480' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+.lbl{font-size:12px;color:var(--mu);font-weight:500;margin-bottom:5px;}
+.fgrp{display:flex;flex-direction:column;gap:11px;}
+
+/* Buttons */
+.btnp{background:var(--pr);color:white;border:none;border-radius:999px;padding:15px;font-size:15px;font-weight:600;width:100%;cursor:pointer;font-family:inherit;transition:opacity .15s,transform .1s;}
+.btnp:hover{opacity:.9;}
+.btnp:active{transform:scale(.98);}
+.btns{background:var(--sf2);color:var(--tx);border:1px solid var(--bd);border-radius:999px;padding:13px;font-size:14px;font-weight:500;width:100%;cursor:pointer;font-family:inherit;transition:background .15s;}
+.btns:hover{background:var(--bd);}
+.btng{background:transparent;color:var(--mu);border:none;font-size:13px;cursor:pointer;font-family:inherit;padding:8px;width:100%;}
+
+/* Section title */
+.sc{font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.7px;padding:14px 20px 8px;}
+
+/* Divider */
+.dv{height:1px;background:var(--bd);margin:0 20px;}
+
+/* Pills */
+.pi{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:600;}
+.ok{background:rgba(76,200,122,.15);color:var(--ok);}
+.pr-pi{background:rgba(74,123,240,.15);color:var(--pr);}
+
+/* Toggle */
+.tg{width:44px;height:26px;border-radius:13px;background:var(--bd);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.tg.on{background:var(--ok);}
+.tg::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:white;transition:transform .2s;}
+.tg.on::after{transform:translateX(18px);}
+
+/* Stepper */
+.step-bar{display:flex;align-items:center;padding:0 20px 16px;gap:0;}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;transition:all .3s;}
+.step-dot.done{background:var(--pr);color:white;}
+.step-dot.active{background:var(--pr);color:white;box-shadow:0 0 0 5px rgba(74,123,240,.22);}
+.step-dot.todo{background:var(--sf2);border:2px solid var(--bd);color:var(--mu);}
+.step-line{flex:1;height:2px;background:var(--bd);transition:background .3s;}
+.step-line.done{background:var(--pr);}
+
+/* Account type cards */
+.type-card{background:var(--sf);border:2px solid var(--bd);border-radius:18px;padding:20px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.type-card:hover{border-color:rgba(74,123,240,.4);}
+.type-card.selected{border-color:var(--pr);background:rgba(74,123,240,.06);}
+.type-card.selected::after{content:'✓';position:absolute;top:14px;right:14px;width:24px;height:24px;background:var(--pr);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;line-height:24px;text-align:center;}
+.type-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:12px;}
+.type-title{font-size:16px;font-weight:700;color:var(--tx);margin-bottom:4px;}
+.type-sub{font-size:13px;color:var(--mu);line-height:1.5;}
+.type-features{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
+.type-feat{font-size:12px;color:var(--tx2);display:flex;align-items:center;gap:6px;}
+.type-feat::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ok);flex-shrink:0;}
+
+/* Progress bar */
+.prog-bar{height:3px;background:var(--bd);border-radius:999px;margin:0 20px 4px;}
+.prog-fill{height:100%;border-radius:999px;background:var(--pr);transition:width .4s ease;}
+
+/* Info box */
+.info-box{background:rgba(74,123,240,.08);border:1px solid rgba(74,123,240,.2);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--pr);line-height:1.6;margin:0 20px 12px;}
+
+/* Mobile money row */
+.mm-row{display:flex;gap:8px;}
+.mm-prefix{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:12px 11px;font-size:13px;color:var(--tx);white-space:nowrap;display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.mm-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* OTP boxes */
+.otp-wrap{display:flex;gap:10px;justify-content:center;}
+.otp-box{width:52px;height:58px;background:var(--sf2);border:2px solid var(--bd);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--tx);transition:border-color .2s;}
+.otp-box.filled{border-color:var(--pr);}
+
+/* Success screen */
+.success-circle{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+
+/* Sticky bottom */
+.sticky{position:absolute;bottom:0;left:0;right:0;padding:14px 20px 22px;background:var(--bg);border-top:1px solid var(--bd);}
+
+/* Chip filters */
+.ch{padding:6px 14px;border-radius:999px;font-size:12px;cursor:pointer;border:1px solid var(--bd);color:var(--mu);background:transparent;font-family:inherit;white-space:nowrap;transition:all .15s;}
+.ch.act{background:var(--pr);border-color:var(--pr);color:white;}
+
+/* Nav panel */
+.nb{background:#10152A;border:1px solid #252D45;color:#D8DCF0;padding:9px 16px;border-radius:9px;cursor:pointer;font-size:12px;font-weight:500;text-align:left;font-family:inherit;transition:all .15s;min-width:160px;}
+.nb:hover,.nb.cur{border-color:var(--pr);color:var(--pr);background:rgba(74,123,240,.1);}
+.ns{color:#5A6480;font-size:10px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;font-family:sans-serif;}
+.badge{display:inline-block;background:rgba(74,123,240,.2);color:var(--pr);font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;margin-left:6px;vertical-align:middle;}
+</style>
+<script>
+// All functions declared globally before DOM loads
+var cur = 's0';
+var selectedType = 'perso';
+
+function G(id) {
+  document.getElementById(cur).classList.remove('on');
+  cur = id;
+  document.getElementById(id).classList.add('on');
+  document.querySelectorAll('.nb').forEach(function(b) {
+    var oc = b.getAttribute('onclick') || '';
+    b.classList.toggle('cur', oc.indexOf("'"+id+"'") !== -1 || oc.indexOf('"'+id+'"') !== -1);
+  });
+}
+
+function N(id) { G(id); }
+
+function selectType(type) {
+  selectedType = type;
+  document.getElementById('card-perso').classList.toggle('selected', type === 'perso');
+  document.getElementById('card-biz').classList.toggle('selected', type === 'biz');
+  var badge = document.getElementById('biz-badge');
+  if (badge) badge.style.display = type === 'biz' ? 'none' : 'block';
+}
+
+function nextFromType() {
+  G('s2');
+}
+
+function nextFromPerso() {
+  if (selectedType === 'biz') G('s3a');
+  else G('s4');
+}
+
+function backFromOtp() {
+  if (selectedType === 'biz') G('s3b');
+  else G('s2');
+}
+
+function toggleBloc(id) {
+  var body = document.getElementById('body-' + id);
+  var tg = document.getElementById('tg-' + id);
+  var isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  tg.classList.toggle('on', !isOpen);
+}
+
+function setBizAndGo(id) {
+  selectedType = 'biz';
+  document.getElementById('success-title').textContent = 'Compte Marchand cree !';
+  document.getElementById('success-sub').textContent = 'Votre boutique PayWest est prete. Ajoutez vos premiers produits et commencez a encaisser.';
+  document.getElementById('recap-content').innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd);"><span style="font-size:12px;color:var(--mu);">Type de compte</span><span style="font-size:12px;font-weight:600;color:var(--ok);">Compte Marchand</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd);"><span style="font-size:12px;color:var(--mu);">Titulaire</span><span style="font-size:12px;color:var(--tx2);">Jackhdiel Doe</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd);"><span style="font-size:12px;color:var(--mu);">Boutique</span><span style="font-size:12px;color:var(--tx2);">Boutique Adjame Pro</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:start;padding:6px 0;"><span style="font-size:12px;color:var(--mu);">Comptes lies</span><div style="text-align:right;"><span style="font-size:11px;color:var(--tx2);">Orange Money · +225 07 44 12 33 55</span></div></div>';
+  G(id);
+}
+
+function setPersoAndGo(id) {
+  selectedType = 'perso';
+  document.getElementById('success-title').textContent = 'Compte cree !';
+  document.getElementById('success-sub').textContent = "Votre compte personnel PayWest est pret. Envoyez, recevez et gerez votre argent partout en Afrique de l'Ouest.";
+  document.getElementById('recap-content').innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd);"><span style="font-size:12px;color:var(--mu);">Type de compte</span><span style="font-size:12px;font-weight:600;color:var(--pr);">Compte Personnel</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd);"><span style="font-size:12px;color:var(--mu);">Titulaire</span><span style="font-size:12px;color:var(--tx2);">Jackhdiel Doe</span></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;"><span style="font-size:12px;color:var(--mu);">Telephone</span><span style="font-size:12px;color:var(--tx2);">+225 07 44 12 33 55</span></div>';
+  G(id);
+}
+
+var timerInterval;
+function startTimer() {
+  clearInterval(timerInterval);
+  var secs = 272;
+  var el = document.getElementById('otp-timer');
+  timerInterval = setInterval(function() {
+    if (secs <= 0) { clearInterval(timerInterval); if(el) el.textContent = '00:00'; return; }
+    secs--;
+    var m = String(Math.floor(secs/60)).padStart(2,'0');
+    var s = String(secs%60).padStart(2,'0');
+    if(el) el.textContent = m+':'+s;
+  }, 1000);
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  startTimer();
+});
+</script>
+</head>
+<body>
+
+<!-- ═══════════════ PHONE ═══════════════ -->
+<div class="phone">
+  <div class="notch"></div>
+  <div class="stb">
+    <span>9:41</span>
+    <svg width="52" height="12" viewBox="0 0 52 12" fill="none">
+      <rect x="0" y="3" width="3" height="9" rx="1" fill="white" opacity=".4"/>
+      <rect x="5" y="2" width="3" height="10" rx="1" fill="white" opacity=".6"/>
+      <rect x="10" y="0" width="3" height="12" rx="1" fill="white"/>
+      <rect x="18" y="2" width="22" height="8" rx="2" stroke="white" stroke-width="1.2" fill="none"/>
+      <rect x="19.5" y="3.5" width="15" height="5" rx="1" fill="white"/>
+    </svg>
+  </div>
+
+  <!-- ══ S0: SPLASH / LOGIN ══ -->
+  <div class="scr on" id="s0">
+    <div class="st"></div>
+    <div class="sa">
+      <div style="padding:30px 28px 0;">
+        <div style="width:56px;height:56px;background:var(--pr);border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="font-size:28px;font-weight:800;color:var(--tx);line-height:1.15;margin-bottom:8px;">Bienvenue sur<br><span style="color:var(--pr);">PayWest</span></div>
+        <div style="font-size:14px;color:var(--mu);margin-bottom:32px;line-height:1.6;">Votre portefeuille mobile intelligent pour l'Afrique de l'Ouest</div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div><div class="lbl">Adresse e-mail</div><input class="inp" type="email" placeholder="ex: vous@exemple.com"/></div>
+          <div>
+            <div class="lbl">Mot de passe</div>
+            <div style="position:relative;">
+              <input class="inp" type="password" placeholder="••••••••" style="padding-right:44px;"/>
+              <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--mu);cursor:pointer;font-size:13px;">👁</div>
+            </div>
+          </div>
+          <div style="text-align:right;"><span style="font-size:13px;color:var(--pr);cursor:pointer;">Mot de passe oublié ?</span></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px;">
+          <button class="btnp" onclick="G('s0b')">Se connecter</button>
+          <button class="btns" onclick="G('s1')">Créer un compte</button>
+        </div>
+
+        <div style="text-align:center;margin-top:20px;font-size:13px;color:var(--mu);">
+          Connexion par OTP ? <span style="color:var(--pr);cursor:pointer;" onclick="G('s0b')">Cliquez ici</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ S0b: HOME PERSO (après login) ══ -->
+  <div class="scr" id="s0b">
+    <div class="st"></div>
+    <div class="topbar">
+      <div>
+        <div style="font-size:11px;color:var(--mu);">Bonjour 👋</div>
+        <div style="font-size:15px;font-weight:700;color:var(--tx);">Jackhdiel Doe</div>
+      </div>
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--pr),#7B4AF0);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white;cursor:pointer;">JD</div>
+    </div>
+    <div class="sa" style="padding-bottom:20px;">
+      <div style="margin:0 20px 16px;background:linear-gradient(135deg,#1a2a5e,#0f1a3d);border:1px solid #253060;border-radius:20px;padding:20px;position:relative;overflow:hidden;">
+        <div style="font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;">Solde total</div>
+        <div style="font-size:30px;font-weight:700;color:var(--tx);margin:4px 0 2px;letter-spacing:-0.5px;">2 847 500 <span style="font-size:16px;font-weight:400;">FCFA</span></div>
+        <div style="font-size:12px;color:var(--ok);">▲ +3.4% ce mois</div>
+        <div style="font-size:12px;color:var(--mu);margin-top:12px;letter-spacing:2px;font-family:monospace;">•••• •••• •••• 4782</div>
+      </div>
+      <div style="background:rgba(74,123,240,.1);border:1px solid rgba(74,123,240,.25);border-radius:14px;margin:0 20px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(74,123,240,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🏪</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:var(--tx);">Ouvrir un compte marchand</div>
+          <div style="font-size:11px;color:var(--mu);">Gérez vos produits, paiements & commandes</div>
+        </div>
+        <div onclick="G('s1')" style="background:var(--pr);color:white;border:none;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;">Créer</div>
+      </div>
+      <div style="padding:20px 20px 0;font-size:14px;color:var(--mu);text-align:center;line-height:1.6;">Vous êtes sur un compte personnel.<br>Pour accéder au module boutique, créez un compte marchand.</div>
+    </div>
+  </div>
+
+  <!-- ══ S1: CHOOSE ACCOUNT TYPE ══ -->
+  <div class="scr" id="s1">
+    <div class="st"></div>
+    <div class="topbar">
+      <div class="ic" onclick="G('s0')">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="tt">Créer un compte</div>
+      <div style="width:36px;"></div>
+    </div>
+    <!-- Progress -->
+    <div class="prog-bar"><div class="prog-fill" style="width:20%;"></div></div>
+    <div style="padding:2px 20px 12px;font-size:11px;color:var(--mu);">Étape 1 sur 5</div>
+
+    <div class="sa" style="padding-bottom:100px;">
+      <div style="padding:0 20px;">
+        <div style="font-size:20px;font-weight:700;color:var(--tx);margin-bottom:4px;">Quel type de compte ?</div>
+        <div style="font-size:13px;color:var(--mu);margin-bottom:20px;line-height:1.5;">Choisissez selon votre usage. Vous pourrez toujours ajouter l'autre type plus tard.</div>
+
+        <!-- PERSONAL -->
+        <div class="type-card selected" id="card-perso" onclick="selectType('perso')" style="margin-bottom:14px;">
+          <div class="type-icon" style="background:rgba(74,123,240,.15);">👤</div>
+          <div class="type-title">Compte Personnel</div>
+          <div class="type-sub">Envoyez, recevez et gérez votre argent au quotidien</div>
+          <div class="type-features">
+            <div class="type-feat">Transferts Mobile Money (Orange, MTN, Wave)</div>
+            <div class="type-feat">Historique & suivi de transactions</div>
+            <div class="type-feat">Paiements de factures</div>
+            <div class="type-feat">Carte virtuelle</div>
+          </div>
+        </div>
+
+        <!-- BUSINESS -->
+        <div class="type-card" id="card-biz" onclick="selectType('biz')">
+          <div style="position:absolute;top:14px;right:14px;background:rgba(240,168,74,.15);color:var(--wa);font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;" id="biz-badge">NOUVEAU</div>
+          <div class="type-icon" style="background:rgba(76,200,122,.15);">🏪</div>
+          <div class="type-title">Compte Marchand <span style="font-size:11px;color:var(--ok);font-weight:500;">Business</span></div>
+          <div class="type-sub">Gérez votre boutique, produits et encaissez vos clients</div>
+          <div class="type-features">
+            <div class="type-feat">Tout du compte personnel +</div>
+            <div class="type-feat">Catalogue de produits avec prix</div>
+            <div class="type-feat">Comptes Orange / MTN / Wave / Banque</div>
+            <div class="type-feat">QR Code caisse imprimable</div>
+            <div class="type-feat">Suivi commandes & paiements</div>
+            <div class="type-feat">Alertes stock bas</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sticky">
+      <button class="btnp" onclick="nextFromType()">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ══ S2: INFOS PERSONNELLES ══ -->
+  <div class="scr" id="s2">
+    <div class="st"></div>
+    <div class="topbar">
+      <div class="ic" onclick="G('s1')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="tt">Vos informations</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" style="width:40%;"></div></div>
+    <div style="padding:2px 20px 12px;font-size:11px;color:var(--mu);">Étape 2 sur 5</div>
+    <div class="sa" style="padding-bottom:100px;">
+      <div style="padding:0 20px;">
+        <div style="font-size:18px;font-weight:700;color:var(--tx);margin-bottom:4px;">Informations personnelles</div>
+        <div style="font-size:13px;color:var(--mu);margin-bottom:18px;">Ces informations servent à sécuriser votre compte.</div>
+        <div class="fgrp">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><div class="lbl">Prénom *</div><input class="inp" placeholder="Jackhdiel" value="Jackhdiel"/></div>
+            <div><div class="lbl">Nom *</div><input class="inp" placeholder="Doe" value="Doe"/></div>
+          </div>
+          <div><div class="lbl">Adresse e-mail *</div><input class="inp" type="email" placeholder="vous@exemple.com"/></div>
+          <div>
+            <div class="lbl">Numéro de téléphone *</div>
+            <div class="mm-row">
+              <div class="mm-prefix">🇨🇮 +225</div>
+              <input class="inp" type="tel" placeholder="07 00 00 00 00" value="07 44 12 33 55"/>
+            </div>
+          </div>
+          <div><div class="lbl">Date de naissance</div><input class="inp" type="date" value="1998-03-15"/></div>
+          <div>
+            <div class="lbl">Genre</div>
+            <select class="inp"><option>-- Sélectionner --</option><option selected>Homme</option><option>Femme</option><option>Préfère ne pas préciser</option></select>
+          </div>
+          <div>
+            <div class="lbl">Pièce d'identité</div>
+            <select class="inp"><option selected>CNI (Carte Nationale d'Identité)</option><option>Passeport</option><option>Permis de conduire</option><option>Titre de séjour</option></select>
+          </div>
+          <div><div class="lbl">Numéro de pièce</div><input class="inp" placeholder="CI0000000000"/></div>
+        </div>
+      </div>
+    </div>
+    <div class="sticky">
+      <button class="btnp" onclick="nextFromPerso()">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ══ S3a: INFOS BOUTIQUE (si Marchand) ══ -->
+  <div class="scr" id="s3a">
+    <div class="st"></div>
+    <div class="topbar">
+      <div class="ic" onclick="G('s2')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="tt">Votre boutique</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" style="width:60%;"></div></div>
+    <div style="padding:2px 20px 12px;font-size:11px;color:var(--mu);">Étape 3 sur 5 — <span style="color:var(--ok);">Compte Marchand</span></div>
+    <div class="sa" style="padding-bottom:100px;">
+      <!-- Shop photo -->
+      <div style="padding:0 20px 14px;">
+        <div style="font-size:18px;font-weight:700;color:var(--tx);margin-bottom:4px;">Informations de votre boutique</div>
+        <div style="font-size:13px;color:var(--mu);margin-bottom:16px;">Ces informations seront visibles par vos clients.</div>
+        <div style="background:var(--sf2);border:2px dashed var(--bd);border-radius:14px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;margin-bottom:14px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#5A6480" stroke-width="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="#5A6480"/><path d="M21 15l-5-5L5 21" stroke="#5A6480" stroke-width="2" stroke-linecap="round"/></svg>
+          <div style="font-size:12px;color:var(--mu);">Photo / Logo de la boutique</div>
+        </div>
+      </div>
+      <div style="padding:0 20px;">
+        <div class="fgrp">
+          <div><div class="lbl">Nom de la boutique *</div><input class="inp" placeholder="ex: Boutique Adjamé Pro"/></div>
+          <div>
+            <div class="lbl">Secteur d'activité *</div>
+            <select class="inp">
+              <option>-- Choisir un secteur --</option>
+              <option selected>Alimentation & épicerie</option>
+              <option>Vêtements & mode</option>
+              <option>Électronique & téléphonie</option>
+              <option>Beauté & hygiène</option>
+              <option>Artisanat & décoration</option>
+              <option>Services (coiffure, couture…)</option>
+              <option>Restauration & traiteur</option>
+              <option>Bâtiment & matériaux</option>
+              <option>Agriculture & élevage</option>
+              <option>Autre</option>
+            </select>
+          </div>
+          <div><div class="lbl">Adresse / Quartier *</div><input class="inp" placeholder="ex: Marché d'Adjamé, Abidjan"/></div>
+          <div>
+            <div class="lbl">Ville</div>
+            <select class="inp">
+              <option selected>Abidjan</option><option>Bouaké</option><option>Daloa</option><option>San-Pédro</option><option>Yamoussoukro</option><option>Korhogo</option><option>Autre</option>
+            </select>
+          </div>
+          <div><div class="lbl">RCCM (optionnel)</div><input class="inp" placeholder="CI-ABJ-2024-B-XXXXX" style="font-family:monospace;font-size:13px;"/></div>
+          <div><div class="lbl">Description de la boutique</div><textarea class="inp" rows="2" placeholder="Décrivez votre activité en quelques mots…" style="resize:none;"></textarea></div>
+        </div>
+      </div>
+    </div>
+    <div class="sticky">
+      <button class="btnp" onclick="G('s3b')">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ══ S3b: COMPTES DE PAIEMENT (si Marchand) ══ -->
+  <div class="scr" id="s3b">
+    <div class="st"></div>
+    <div class="topbar">
+      <div class="ic" onclick="G('s3a')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="tt">Comptes de paiement</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" style="width:70%;"></div></div>
+    <div style="padding:2px 20px 12px;font-size:11px;color:var(--mu);">Étape 3b sur 5 — <span style="color:var(--ok);">Comptes de réception</span></div>
+    <div class="sa" style="padding-bottom:100px;">
+      <div style="padding:0 20px 12px;">
+        <div style="font-size:18px;font-weight:700;color:var(--tx);margin-bottom:4px;">Où recevoir vos paiements ?</div>
+        <div style="font-size:13px;color:var(--mu);line-height:1.5;">Configurez les comptes sur lesquels vos clients vous paieront. Au minimum 1 compte requis.</div>
+      </div>
+
+      <div class="info-box">
+        💡 Vos clients verront ces comptes lors du paiement et pourront choisir leur opérateur préféré.
+      </div>
+
+      <div style="padding:0 20px;display:flex;flex-direction:column;gap:10px;">
+
+        <!-- Orange Money -->
+        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;overflow:hidden;" id="bloc-orange">
+          <div style="padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="toggleBloc('orange')">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,102,0,.15);display:flex;align-items:center;justify-content:center;">
+              <span style="width:14px;height:14px;border-radius:50%;background:#FF6600;display:inline-block;"></span>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:600;color:var(--tx);">Orange Money</div>
+              <div style="font-size:11px;color:var(--mu);">Numéro Orange CI</div>
+            </div>
+            <div class="tg on" id="tg-orange" onclick="event.stopPropagation();this.classList.toggle('on')"></div>
+          </div>
+          <div id="body-orange" style="padding:0 14px 14px;border-top:1px solid var(--bd);">
+            <div style="margin-top:12px;">
+              <div class="lbl">Numéro Orange Money *</div>
+              <div class="mm-row" style="margin-top:5px;">
+                <div class="mm-prefix"><span class="mm-dot" style="background:#FF6600;"></span>+225</div>
+                <input class="inp" type="tel" placeholder="07 00 00 00 00" value="07 44 12 33 55"/>
+              </div>
+            </div>
+            <div style="margin-top:10px;"><div class="lbl">Nom du titulaire</div><input class="inp" style="margin-top:5px;" value="JACKHDIEL DOE" readonly/></div>
+            <div style="margin-top:8px;display:flex;align-items:center;gap:6px;">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--ok);"></span>
+              <span style="font-size:11px;color:var(--ok);">Compte principal (paiements prioritaires)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MTN MoMo -->
+        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;overflow:hidden;" id="bloc-mtn">
+          <div style="padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="toggleBloc('mtn')">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,204,0,.12);display:flex;align-items:center;justify-content:center;">
+              <span style="width:14px;height:14px;border-radius:50%;background:#FFCC00;display:inline-block;"></span>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:600;color:var(--tx);">MTN Mobile Money</div>
+              <div style="font-size:11px;color:var(--mu);">Numéro MTN CI</div>
+            </div>
+            <div class="tg" id="tg-mtn" onclick="event.stopPropagation();toggleBloc('mtn')"></div>
+          </div>
+          <div id="body-mtn" style="display:none;padding:0 14px 14px;border-top:1px solid var(--bd);">
+            <div style="margin-top:12px;"><div class="lbl">Numéro MTN MoMo</div>
+              <div class="mm-row" style="margin-top:5px;">
+                <div class="mm-prefix"><span class="mm-dot" style="background:#FFCC00;"></span>+225</div>
+                <input class="inp" type="tel" placeholder="05 00 00 00 00"/>
+              </div>
+            </div>
+            <div style="margin-top:10px;"><div class="lbl">Nom du titulaire</div><input class="inp" style="margin-top:5px;" placeholder="Nom sur le compte"/></div>
+          </div>
+        </div>
+
+        <!-- Wave -->
+        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;overflow:hidden;" id="bloc-wave">
+          <div style="padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="toggleBloc('wave')">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(31,169,224,.12);display:flex;align-items:center;justify-content:center;">
+              <span style="width:14px;height:14px;border-radius:50%;background:#1FA9E0;display:inline-block;"></span>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:600;color:var(--tx);">Wave</div>
+              <div style="font-size:11px;color:var(--mu);">Numéro Wave CI</div>
+            </div>
+            <div class="tg" id="tg-wave" onclick="event.stopPropagation();toggleBloc('wave')"></div>
+          </div>
+          <div id="body-wave" style="display:none;padding:0 14px 14px;border-top:1px solid var(--bd);">
+            <div style="margin-top:12px;"><div class="lbl">Numéro Wave</div>
+              <div class="mm-row" style="margin-top:5px;">
+                <div class="mm-prefix"><span class="mm-dot" style="background:#1FA9E0;"></span>+225</div>
+                <input class="inp" type="tel" placeholder="01 00 00 00 00"/>
+              </div>
+            </div>
+            <div style="margin-top:10px;"><div class="lbl">Nom du titulaire</div><input class="inp" style="margin-top:5px;" placeholder="Nom sur le compte"/></div>
+          </div>
+        </div>
+
+        <!-- Compte Bancaire -->
+        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;overflow:hidden;" id="bloc-bank">
+          <div style="padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="toggleBloc('bank')">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(76,200,122,.12);display:flex;align-items:center;justify-content:center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3" stroke="#4CC87A" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:600;color:var(--tx);">Compte bancaire</div>
+              <div style="font-size:11px;color:var(--mu);">IBAN / RIB — virements banque</div>
+            </div>
+            <div class="tg" id="tg-bank" onclick="event.stopPropagation();toggleBloc('bank')"></div>
+          </div>
+          <div id="body-bank" style="display:none;padding:0 14px 14px;border-top:1px solid var(--bd);">
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+              <div><div class="lbl">Banque</div>
+                <select class="inp" style="margin-top:5px;">
+                  <option>-- Choisir votre banque --</option>
+                  <option>UBA Côte d'Ivoire</option><option>Ecobank CI</option><option>SGBCI</option>
+                  <option>BNI</option><option>Coris Bank</option><option>Bridge Bank</option><option>Autre</option>
+                </select>
+              </div>
+              <div><div class="lbl">Numéro IBAN / RIB</div><input class="inp" style="margin-top:5px;font-family:monospace;font-size:12px;" placeholder="CI00 0000 0000 0000 0000 0000"/></div>
+              <div><div class="lbl">Nom du titulaire du compte</div><input class="inp" style="margin-top:5px;" placeholder="Tel qu'il apparaît sur le relevé bancaire"/></div>
+              <div style="background:rgba(240,168,74,.08);border:1px solid rgba(240,168,74,.2);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--wa);line-height:1.5;">
+                ⚠ Les virements bancaires peuvent prendre 24–48h. Privilégiez Mobile Money pour les paiements instantanés.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="sticky">
+      <button class="btnp" onclick="G('s4')">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ══ S4: OTP VERIFICATION ══ -->
+  <div class="scr" id="s4">
+    <div class="st"></div>
+    <div class="topbar">
+      <div class="ic" onclick="backFromOtp()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="tt">Vérification OTP</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" style="width:85%;"></div></div>
+    <div style="padding:2px 20px 12px;font-size:11px;color:var(--mu);">Étape 4 sur 5</div>
+    <div class="sa" style="padding-bottom:100px;">
+      <div style="padding:0 28px;">
+        <div style="font-size:18px;font-weight:700;color:var(--tx);margin-bottom:4px;">Vérifiez votre numéro</div>
+        <div style="font-size:13px;color:var(--mu);margin-bottom:6px;line-height:1.5;">Un code à 6 chiffres a été envoyé au</div>
+        <div style="font-size:14px;font-weight:600;color:var(--tx);margin-bottom:24px;">+225 07 44 12 33 55</div>
+
+        <div class="otp-wrap" style="margin-bottom:10px;">
+          <div class="otp-box filled">3</div>
+          <div class="otp-box filled">8</div>
+          <div class="otp-box filled">4</div>
+          <div class="otp-box filled">1</div>
+          <div class="otp-box">_</div>
+          <div class="otp-box">_</div>
+        </div>
+        <div style="text-align:center;font-size:12px;color:var(--mu);margin-bottom:20px;">Code expirant dans <span style="color:var(--wa);font-weight:600;" id="otp-timer">04:32</span></div>
+
+        <div style="background:var(--sf2);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-size:13px;color:var(--mu);">Pas reçu le code ?</div>
+          <button onclick="startTimer()" style="background:transparent;color:var(--pr);border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Renvoyer</button>
+        </div>
+
+        <div style="background:rgba(240,168,74,.08);border:1px solid rgba(240,168,74,.2);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--wa);line-height:1.5;">
+          💡 Maximum 3 tentatives. Après 3 erreurs, le compte est temporairement bloqué 30 minutes.
+        </div>
+      </div>
+    </div>
+    <div class="sticky">
+      <button class="btnp" onclick="G('s5')">Valider le code →</button>
+    </div>
+  </div>
+
+  <!-- ══ S5: PIN CREATION ══ -->
+  <div class="scr" id="s5">
+    <div class="st"></div>
+    <div class="topbar">
+      <div class="ic" onclick="G('s4')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="tt">Code PIN</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" style="width:95%;"></div></div>
+    <div style="padding:2px 20px 12px;font-size:11px;color:var(--mu);">Étape 5 sur 5 — Dernière étape !</div>
+    <div class="sa" style="padding-bottom:100px;">
+      <div style="padding:0 28px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;color:var(--tx);margin-bottom:4px;">Créez votre code PIN</div>
+        <div style="font-size:13px;color:var(--mu);margin-bottom:24px;line-height:1.5;">Ce PIN sécurise toutes vos transactions. Choisissez 4 chiffres mémorisables.</div>
+
+        <div style="display:flex;gap:16px;justify-content:center;margin-bottom:24px;">
+          <div style="width:16px;height:16px;border-radius:50%;background:var(--pr);"></div>
+          <div style="width:16px;height:16px;border-radius:50%;background:var(--pr);"></div>
+          <div style="width:16px;height:16px;border-radius:50%;background:var(--pr);"></div>
+          <div style="width:16px;height:16px;border-radius:50%;border:2px solid var(--bd);"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);border-radius:16px;overflow:hidden;max-width:300px;margin:0 auto 20px;">
+          <div style="background:var(--sf2);padding:18px;font-size:22px;font-weight:500;color:var(--tx);cursor:pointer;">1</div>
+          <div style="background:var(--sf2);padding:18px;font-size:22px;font-weight:500;color:var(--tx);cursor:pointer;">2</div>
+          <div style="background:var(--sf2);padding:18px;font-size:22px;font-weight:500;color:var(--tx);cursor:pointer;">3</div>
+          <div style="background:var(--sf2);padding:18px;font-size:22px;font-weight:500;color:var(--tx);cursor:pointer;">4</div>
+          <div style="background:var(--sf2);padding:18px;font-size:22px;font-weight:500;color:var(--tx);cursor:pointer;">5</div>
+          <div style="background:var(--sf2);padding:18px;font-size:22px;font-weight:500;color:var(--tx);cursor:pointer;">6</div>
+          <div style="background:var(--sf2);padding:18px;font-size:22px;font-weight:500;color:var(--tx);cursor:pointer;">7</div>
+          <div style="background:var(--sf2);padding:18px;font-size:22px;font-weight:500;color:var(--tx);cursor:pointer;">8</div>
+          <div style="background:var(--sf2);padding:18px;font-size:22px;font-weight:500;color:var(--tx);cursor:pointer;">9</div>
+          <div style="background:var(--sf2);padding:18px;font-size:14px;color:var(--mu);cursor:pointer;display:flex;align-items:center;justify-content:center;"></div>
+          <div style="background:var(--sf2);padding:18px;font-size:22px;font-weight:500;color:var(--tx);cursor:pointer;">0</div>
+          <div style="background:var(--sf2);padding:18px;font-size:14px;color:var(--mu);cursor:pointer;display:flex;align-items:center;justify-content:center;">⌫</div>
+        </div>
+
+        <div style="background:rgba(240,90,90,.08);border:1px solid rgba(240,90,90,.2);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--er);text-align:left;line-height:1.5;">
+          🔒 N'utilisez pas votre date de naissance ou un PIN trop simple comme 1234.
+        </div>
+      </div>
+    </div>
+    <div class="sticky">
+      <button class="btnp" onclick="G('s6')">Confirmer mon PIN →</button>
+    </div>
+  </div>
+
+  <!-- ══ S6: SUCCESS ══ -->
+  <div class="scr" id="s6">
+    <div class="st"></div>
+    <div class="sa">
+      <div style="padding:40px 28px;display:flex;flex-direction:column;align-items:center;text-align:center;">
+        <!-- Animated checkmark -->
+        <div style="width:90px;height:90px;border-radius:50%;background:rgba(76,200,122,.15);border:3px solid var(--ok);display:flex;align-items:center;justify-content:center;margin-bottom:20px;" id="success-icon">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#4CC87A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="font-size:24px;font-weight:800;color:var(--tx);margin-bottom:8px;" id="success-title">Compte créé !</div>
+        <div style="font-size:14px;color:var(--mu);line-height:1.6;margin-bottom:28px;" id="success-sub">Votre compte PayWest est prêt. Vous pouvez maintenant envoyer, recevoir et gérer votre argent.</div>
+
+        <!-- Account summary card -->
+        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:18px;padding:18px;width:100%;text-align:left;margin-bottom:20px;" id="success-card">
+          <div style="font-size:12px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">Récapitulatif du compte</div>
+          <div style="display:flex;flex-direction:column;gap:10px;" id="recap-content">
+            <!-- filled by JS -->
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;width:100%;">
+          <button class="btnp" onclick="G('s-dashboard')">Accéder à mon compte →</button>
+          <div style="font-size:13px;color:var(--mu);cursor:pointer;" onclick="G('s0')">Plus tard</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ S-DASHBOARD: HOME MARCHAND ══ -->
+  <div class="scr" id="s-dashboard">
+    <div class="st"></div>
+    <div class="topbar">
+      <div>
+        <div style="font-size:11px;color:var(--mu);">Espace marchand</div>
+        <div style="font-size:15px;font-weight:700;color:var(--tx);" id="dash-name">Boutique Adjamé Pro</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div class="ic">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="#F0F2F8" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="#F0F2F8" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="#F0F2F8" stroke-width="2"/><path d="M14 14h2v2h-2zM18 14h3M14 18v3M18 18h3v3h-3z" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="sa" style="padding-bottom:90px;">
+      <!-- Welcome banner -->
+      <div style="margin:0 20px 16px;background:linear-gradient(135deg,rgba(76,200,122,.15),rgba(74,123,240,.1));border:1px solid rgba(76,200,122,.3);border-radius:16px;padding:16px;">
+        <div style="font-size:13px;font-weight:700;color:var(--ok);margin-bottom:4px;">🎉 Bienvenue sur PayWest Business !</div>
+        <div style="font-size:12px;color:var(--tx2);line-height:1.5;">Votre compte marchand est actif. Commencez par ajouter vos premiers produits.</div>
+        <button onclick="G('s-add')" style="margin-top:10px;background:var(--ok);color:white;border:none;border-radius:999px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">+ Ajouter un produit</button>
+      </div>
+      <!-- Stats -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 20px 14px;">
+        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px 8px;text-align:center;">
+          <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;">Ventes auj.</div>
+          <div style="font-size:17px;font-weight:700;color:var(--ok);margin-top:4px;">0</div>
+          <div style="font-size:9px;color:var(--mu);">FCFA</div>
+        </div>
+        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px 8px;text-align:center;">
+          <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;">Produits</div>
+          <div style="font-size:17px;font-weight:700;color:var(--mu);margin-top:4px;">0</div>
+          <div style="font-size:9px;color:var(--mu);">ajoutés</div>
+        </div>
+        <div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px 8px;text-align:center;">
+          <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;">Commandes</div>
+          <div style="font-size:17px;font-weight:700;color:var(--mu);margin-top:4px;">0</div>
+          <div style="font-size:9px;color:var(--mu);">en attente</div>
+        </div>
+      </div>
+      <!-- Comptes liés -->
+      <div class="sc">Comptes de réception configurés</div>
+      <div style="padding:0 20px;display:flex;flex-direction:column;gap:8px;margin-bottom:16px;" id="dash-accounts">
+        <div style="display:flex;align-items:center;gap:10px;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#FF6600;flex-shrink:0;"></span>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--tx);">Orange Money</div><div style="font-size:12px;color:var(--mu);">+225 07 44 12 33 55</div></div>
+          <span style="background:rgba(74,123,240,.15);color:var(--pr);font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;">Principal</span>
+        </div>
+      </div>
+      <!-- Empty state produits -->
+      <div class="sc">Catalogue</div>
+      <div style="margin:0 20px;background:var(--sf2);border:2px dashed var(--bd);border-radius:16px;padding:32px 20px;text-align:center;" onclick="G('s-add')">
+        <div style="font-size:32px;margin-bottom:10px;opacity:.4;">📦</div>
+        <div style="font-size:15px;font-weight:600;color:var(--tx2);margin-bottom:6px;">Aucun produit encore</div>
+        <div style="font-size:13px;color:var(--mu);margin-bottom:16px;">Ajoutez votre premier produit et commencez à vendre !</div>
+        <button onclick="G('s-add')" style="background:var(--pr);color:white;border:none;border-radius:999px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">+ Ajouter un produit</button>
+      </div>
+    </div>
+    <!-- Tabbar -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:82px;background:var(--sf);border-top:1px solid var(--bd);display:flex;align-items:flex-start;padding-top:10px;z-index:50;">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;" onclick="">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#4A7BF0" stroke-width="2"/><polyline points="9,22 9,12 15,12 15,22" stroke="#4A7BF0" stroke-width="2"/></svg>
+        <div style="font-size:10px;font-weight:500;color:var(--pr);">Boutique</div>
+        <div style="width:4px;height:4px;border-radius:50%;background:var(--pr);"></div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;" onclick="G('s-add')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="#5A6480" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="#5A6480" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="#5A6480" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="#5A6480" stroke-width="2"/></svg>
+        <div style="font-size:10px;font-weight:500;color:var(--mu);">Catalogue</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="#5A6480" stroke-width="2"/></svg>
+        <div style="font-size:10px;font-weight:500;color:var(--mu);">Commandes</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="#5A6480" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="#5A6480" stroke-width="2"/></svg>
+        <div style="font-size:10px;font-weight:500;color:var(--mu);">Compte</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ S-ADD: ADD PRODUCT (depuis dashboard vide) ══ -->
+  <div class="scr" id="s-add">
+    <div class="st"></div>
+    <div class="topbar">
+      <div class="ic" onclick="G('s-dashboard')"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="tt">Premier produit</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="sa" style="padding-bottom:100px;">
+      <div style="padding:0 20px 14px;">
+        <div style="background:rgba(74,123,240,.08);border:1px solid rgba(74,123,240,.2);border-radius:12px;padding:11px 14px;font-size:12px;color:var(--pr);line-height:1.5;margin-bottom:14px;">
+          🎯 Vos comptes de paiement Orange Money (+225 07 44 12 33 55) seront automatiquement associés à ce produit.
+        </div>
+        <div style="background:var(--sf2);border:2px dashed var(--bd);border-radius:14px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;margin-bottom:14px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#5A6480" stroke-width="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="#5A6480"/><path d="M21 15l-5-5L5 21" stroke="#5A6480" stroke-width="2" stroke-linecap="round"/></svg>
+          <div style="font-size:12px;color:var(--mu);">Photo du produit</div>
+        </div>
+      </div>
+      <div style="padding:0 20px;">
+        <div class="fgrp">
+          <div><div class="lbl">Nom du produit *</div><input class="inp" placeholder="ex: Tomates fraîches du marché"/></div>
+          <div><div class="lbl">Catégorie</div>
+            <select class="inp"><option>Alimentation & épicerie</option><option>Vêtements & mode</option><option>Électronique</option><option>Services</option><option>Autre</option></select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><div class="lbl">Prix de vente (FCFA) *</div><input class="inp" type="number" placeholder="500"/></div>
+            <div><div class="lbl">Unité</div><select class="inp"><option>pièce</option><option>kg</option><option>litre</option><option>lot</option></select></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><div class="lbl">Prix d'achat</div><input class="inp" type="number" placeholder="300"/></div>
+            <div><div class="lbl">Stock</div><input class="inp" type="number" placeholder="50"/></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sticky">
+      <button class="btnp" onclick="G('s-dashboard')">Enregistrer et publier</button>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<!-- ═══════════════ NAV PANEL ═══════════════ -->
+<div style="font-family:sans-serif;">
+  <div class="ns">Flow de création</div>
+  <div style="display:flex;flex-direction:column;gap:6px;">
+    <button class="nb cur" onclick="N('s0')">🔐 Login / Accueil</button>
+    <button class="nb" onclick="N('s0b')">🏠 Home (Perso sans boutique)</button>
+    <div style="height:1px;background:#252D45;margin:4px 0;"></div>
+    <div style="font-size:10px;color:#5A6480;padding:2px 0;">── Création de compte ──</div>
+    <button class="nb" onclick="N('s1')">1️⃣ Choix type de compte</button>
+    <button class="nb" onclick="N('s2')">2️⃣ Infos personnelles</button>
+    <button class="nb" onclick="N('s3a')">3️⃣ Infos boutique <span class="badge">MARCHAND</span></button>
+    <button class="nb" onclick="N('s3b')">3b⃣ Comptes paiement <span class="badge">MARCHAND</span></button>
+    <button class="nb" onclick="N('s4')">4️⃣ Vérification OTP</button>
+    <button class="nb" onclick="N('s5')">5️⃣ Création PIN</button>
+    <button class="nb" onclick="setBizAndGo('s6')">✅ Succès Marchand</button>
+    <button class="nb" onclick="setPersoAndGo('s6')">✅ Succès Personnel</button>
+    <div style="height:1px;background:#252D45;margin:4px 0;"></div>
+    <button class="nb" onclick="N('s-dashboard')">🏪 Dashboard Marchand</button>
+    <button class="nb" onclick="N('s-add')">➕ Ajouter 1er produit</button>
+  </div>
+
+  <div class="ns" style="margin-top:20px;">Points clés UX</div>
+  <div style="background:#10152A;border:1px solid #252D45;border-radius:10px;padding:12px;width:168px;display:flex;flex-direction:column;gap:7px;">
+    <div style="font-size:11px;color:#4CC87A;display:flex;align-items:center;gap:6px;"><span style="width:5px;height:5px;border-radius:50%;background:#4CC87A;flex-shrink:0;"></span>Choix type dès l'étape 1</div>
+    <div style="font-size:11px;color:#4CC87A;display:flex;align-items:center;gap:6px;"><span style="width:5px;height:5px;border-radius:50%;background:#4CC87A;flex-shrink:0;"></span>Flow Marchand = +2 étapes</div>
+    <div style="font-size:11px;color:#4CC87A;display:flex;align-items:center;gap:6px;"><span style="width:5px;height:5px;border-radius:50%;background:#4CC87A;flex-shrink:0;"></span>Orange/MTN/Wave/Banque</div>
+    <div style="font-size:11px;color:#4CC87A;display:flex;align-items:center;gap:6px;"><span style="width:5px;height:5px;border-radius:50%;background:#4CC87A;flex-shrink:0;"></span>Toggle ON/OFF par canal</div>
+    <div style="font-size:11px;color:#4CC87A;display:flex;align-items:center;gap:6px;"><span style="width:5px;height:5px;border-radius:50%;background:#4CC87A;flex-shrink:0;"></span>Récap sur écran succès</div>
+    <div style="font-size:11px;color:#4CC87A;display:flex;align-items:center;gap:6px;"><span style="width:5px;height:5px;border-radius:50%;background:#4CC87A;flex-shrink:0;"></span>Compte perso peut switcher</div>
+    <div style="font-size:11px;color:#4CC87A;display:flex;align-items:center;gap:6px;"><span style="width:5px;height:5px;border-radius:50%;background:#4CC87A;flex-shrink:0;"></span>Comptes auto-liés aux produits</div>
+  </div>
+</div>
+</body>
+</html>

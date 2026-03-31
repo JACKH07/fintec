@@ -1,0 +1,1002 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0B0F1A;
+    --surface: #10152A;
+    --surface2: #161C2D;
+    --border: #252D45;
+    --text: #F0F2F8;
+    --text2: #D8DCF0;
+    --muted: #5A6480;
+    --primary: #4A7BF0;
+    --success: #4CC87A;
+    --danger: #F05A5A;
+    --warning: #F0A84A;
+    --orange: #FF6B00;
+    --r-card: 14px;
+    --r-input: 12px;
+    --r-pill: 999px;
+  }
+  body { background: #1a1a2e; display: flex; justify-content: center; padding: 20px; font-family: -apple-system, 'SF Pro Display', sans-serif; }
+  .prototype-wrapper { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+  .phone { width: 390px; height: 844px; background: var(--bg); border-radius: 44px; overflow: hidden; position: relative; border: 8px solid #222; box-shadow: 0 30px 80px rgba(0,0,0,0.7); flex-shrink: 0; }
+  .notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 34px; background: #111; border-radius: 0 0 20px 20px; z-index: 100; }
+  .screen { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: none; flex-direction: column; overflow: hidden; }
+  .screen.active { display: flex; }
+  .safe-top { height: 50px; flex-shrink: 0; }
+  .safe-bottom { height: 34px; flex-shrink: 0; background: var(--bg); }
+  .scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  /* Status bar */
+  .status-bar { position: absolute; top: 0; left: 0; right: 0; height: 50px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 24px 8px; z-index: 10; font-size: 12px; font-weight: 600; color: var(--text); pointer-events: none; }
+  .status-icons { display: flex; gap: 6px; align-items: center; font-size: 11px; }
+
+  /* TopBar */
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; flex-shrink: 0; }
+  .topbar-title { font-size: 17px; font-weight: 600; color: var(--text); }
+  .topbar-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .topbar-icon svg { width: 18px; height: 18px; }
+
+  /* TabBar */
+  .tabbar { position: absolute; bottom: 0; left: 0; right: 0; height: 82px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: flex-start; padding-top: 10px; z-index: 50; }
+  .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 4px 0; }
+  .tab-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+  .tab-label { font-size: 10px; font-weight: 500; color: var(--muted); }
+  .tab-item.active .tab-label { color: var(--primary); }
+  .tab-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--primary); margin-top: 2px; display: none; }
+  .tab-item.active .tab-dot { display: block; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: 16px; }
+  .card-sm { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: 12px; }
+
+  /* Balance card */
+  .balance-card { background: linear-gradient(135deg, #1a2a5e 0%, #0f1a3d 100%); border: 1px solid #253060; border-radius: 20px; padding: 20px; margin: 0 20px; position: relative; overflow: hidden; }
+  .balance-card::before { content: ''; position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(74,123,240,0.15); }
+  .balance-card::after { content: ''; position: absolute; bottom: -20px; left: 40px; width: 80px; height: 80px; border-radius: 50%; background: rgba(74,123,240,0.08); }
+  .balance-label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+  .balance-amount { font-size: 32px; font-weight: 700; color: var(--text); margin: 4px 0 2px; letter-spacing: -0.5px; }
+  .balance-variation { font-size: 12px; color: var(--success); display: flex; align-items: center; gap: 4px; }
+  .card-number { font-size: 13px; color: var(--muted); margin-top: 16px; letter-spacing: 2px; font-family: monospace; }
+
+  /* Quick actions */
+  .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 0 20px; }
+  .qa-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+  .qa-icon { width: 52px; height: 52px; border-radius: 16px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; transition: transform 0.15s; }
+  .qa-item:active .qa-icon { transform: scale(0.95); }
+  .qa-label { font-size: 11px; color: var(--text2); font-weight: 500; text-align: center; }
+
+  /* Transaction rows */
+  .tx-row { display: flex; align-items: center; gap: 12px; padding: 12px 20px; cursor: pointer; transition: background 0.15s; }
+  .tx-row:active { background: var(--surface2); }
+  .tx-icon { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+  .tx-info { flex: 1; min-width: 0; }
+  .tx-name { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tx-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .tx-right { text-align: right; flex-shrink: 0; }
+  .tx-amount { font-size: 14px; font-weight: 600; }
+  .tx-amount.positive { color: var(--success); }
+  .tx-amount.negative { color: var(--text); }
+  .tx-status { font-size: 11px; margin-top: 2px; }
+
+  /* Status pill */
+  .pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: var(--r-pill); font-size: 11px; font-weight: 600; }
+  .pill-success { background: rgba(76,200,122,0.15); color: var(--success); }
+  .pill-pending { background: rgba(240,168,74,0.15); color: var(--warning); }
+  .pill-danger { background: rgba(240,90,90,0.15); color: var(--danger); }
+
+  /* Operator pills */
+  .op-pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--r-pill); border: 2px solid var(--border); background: var(--surface2); cursor: pointer; transition: all 0.15s; font-size: 13px; font-weight: 600; color: var(--text2); }
+  .op-pill.active { border-color: var(--primary); background: rgba(74,123,240,0.1); color: var(--primary); }
+  .op-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Inputs */
+  .input-field { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-input); padding: 14px 16px; font-size: 15px; color: var(--text); width: 100%; outline: none; font-family: inherit; transition: border-color 0.2s; }
+  .input-field:focus { border-color: var(--primary); }
+  .input-field::placeholder { color: var(--muted); }
+  .input-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
+
+  /* Buttons */
+  .btn-primary { background: var(--primary); color: white; border: none; border-radius: var(--r-pill); padding: 16px 24px; font-size: 15px; font-weight: 600; width: 100%; cursor: pointer; font-family: inherit; transition: opacity 0.15s, transform 0.1s; letter-spacing: 0.2px; }
+  .btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: var(--r-pill); padding: 14px 24px; font-size: 15px; font-weight: 500; width: 100%; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+  .btn-ghost { background: transparent; color: var(--muted); border: none; font-size: 14px; cursor: pointer; font-family: inherit; padding: 8px; }
+
+  /* Section titles */
+  .section-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; padding: 16px 20px 8px; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 8px; }
+  .section-header-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .section-header-link { font-size: 13px; color: var(--primary); cursor: pointer; }
+
+  /* OTP boxes */
+  .otp-box { width: 52px; height: 60px; background: var(--surface2); border: 2px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: var(--text); cursor: pointer; transition: border-color 0.2s; }
+  .otp-box.filled { border-color: var(--primary); }
+  .otp-box.error { border-color: var(--danger); }
+
+  /* Amount numpad */
+  .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border-radius: 16px; overflow: hidden; }
+  .numpad-key { background: var(--surface2); padding: 18px; text-align: center; font-size: 22px; font-weight: 500; color: var(--text); cursor: pointer; transition: background 0.1s; }
+  .numpad-key:active { background: var(--surface); }
+  .numpad-key.muted { font-size: 14px; color: var(--muted); }
+
+  /* Stepper */
+  .stepper { display: flex; align-items: center; gap: 0; padding: 0 20px; }
+  .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .step-dot.done { background: var(--primary); color: white; }
+  .step-dot.active { background: var(--primary); color: white; box-shadow: 0 0 0 4px rgba(74,123,240,0.25); }
+  .step-dot.todo { background: var(--surface2); border: 2px solid var(--border); color: var(--muted); }
+  .step-line { flex: 1; height: 2px; background: var(--border); }
+  .step-line.done { background: var(--primary); }
+
+  /* Skeleton */
+  .skeleton { background: linear-gradient(90deg, var(--surface2) 0%, var(--surface) 50%, var(--surface2) 100%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* Summary cards */
+  .summary-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 20px; }
+  .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: 14px; }
+  .summary-label { font-size: 11px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .summary-value { font-size: 20px; font-weight: 700; margin-top: 6px; }
+  .summary-value.green { color: var(--success); }
+  .summary-value.red { color: var(--danger); }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 4px 20px; }
+
+  /* Profile */
+  .avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, #7B4AF0 100%); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: white; }
+  .settings-row { display: flex; align-items: center; gap: 14px; padding: 14px 20px; cursor: pointer; transition: background 0.15s; }
+  .settings-row:active { background: var(--surface2); }
+  .settings-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .settings-label { flex: 1; font-size: 15px; color: var(--text); }
+  .settings-chevron { color: var(--muted); font-size: 18px; }
+
+  /* TX Detail hero */
+  .tx-hero { background: linear-gradient(180deg, var(--surface2) 0%, var(--bg) 100%); padding: 24px 20px 20px; text-align: center; }
+  .tx-hero-icon { width: 72px; height: 72px; border-radius: 22px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+  .tx-hero-amount { font-size: 32px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+  .tx-hero-name { font-size: 15px; color: var(--text2); margin-top: 4px; }
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; }
+  .info-label { font-size: 13px; color: var(--muted); }
+  .info-value { font-size: 13px; color: var(--text2); font-weight: 500; text-align: right; }
+
+  /* Amount display */
+  .amount-display { text-align: center; padding: 20px; }
+  .amount-currency { font-size: 16px; color: var(--muted); font-weight: 500; }
+  .amount-value { font-size: 48px; font-weight: 700; color: var(--text); letter-spacing: -1px; display: inline; }
+  .amount-cursor { display: inline-block; width: 3px; height: 44px; background: var(--primary); vertical-align: middle; margin-left: 2px; animation: blink 1s infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  /* Nav controls (outside phone) */
+  .nav-controls { display: flex; flex-direction: column; gap: 8px; }
+  .nav-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text2); padding: 10px 18px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 500; text-align: left; transition: all 0.15s; min-width: 160px; font-family: inherit; }
+  .nav-btn:hover { background: var(--surface2); border-color: var(--primary); color: var(--primary); }
+  .nav-btn.current { border-color: var(--primary); color: var(--primary); background: rgba(74,123,240,0.1); }
+  .nav-label { color: var(--muted); font-size: 11px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.8px; font-family: -apple-system, sans-serif; }
+
+  /* Filter tabs */
+  .filter-tabs { display: flex; gap: 8px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+  .filter-tabs::-webkit-scrollbar { display: none; }
+  .filter-tab { padding: 7px 16px; border-radius: var(--r-pill); font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; border: 1px solid var(--border); color: var(--muted); background: transparent; transition: all 0.15s; font-family: inherit; }
+  .filter-tab.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+  /* PIN dots */
+  .pin-dots { display: flex; gap: 16px; justify-content: center; padding: 20px 0; }
+  .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); transition: all 0.2s; }
+  .pin-dot.filled { background: var(--primary); border-color: var(--primary); }
+
+  /* Loading spinner */
+  .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Error state */
+  .error-hint { font-size: 12px; color: var(--danger); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+  .error-hint::before { content: '⚠'; font-size: 11px; }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 40px 20px; }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-title { font-size: 16px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; color: var(--muted); }
+
+  /* Day group */
+  .day-header { font-size: 12px; color: var(--muted); font-weight: 600; padding: 12px 20px 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Cooldown badge */
+  .cooldown { display: inline-flex; align-items: center; gap: 6px; background: rgba(240,168,74,0.15); color: var(--warning); padding: 8px 16px; border-radius: var(--r-pill); font-size: 13px; font-weight: 600; }
+</style>
+
+<div class="prototype-wrapper">
+
+<!-- PHONE -->
+<div class="phone" id="phone">
+  <div class="notch"></div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><rect x="0" y="3" width="3" height="9" rx="1" fill="white" opacity="0.4"/><rect x="4.5" y="2" width="3" height="10" rx="1" fill="white" opacity="0.6"/><rect x="9" y="0" width="3" height="12" rx="1" fill="white"/><path d="M14 2L16 0v12l-2-2V2z" fill="white"/></svg>
+      <svg width="16" height="12" viewBox="0 0 25 12" fill="white"><rect x="0" y="2" width="22" height="8" rx="2" stroke="white" stroke-width="1.5" fill="none"/><rect x="1.5" y="3.5" width="16" height="5" rx="1" fill="white"/><path d="M23 4.5v3a1.5 1.5 0 000-3z" fill="white" opacity="0.5"/></svg>
+    </div>
+  </div>
+
+  <!-- SCREEN: LOGIN -->
+  <div class="screen active" id="screen-login">
+    <div class="safe-top"></div>
+    <div class="scroll-area">
+      <div style="padding: 20px 28px 0; margin-top: 10px;">
+        <div style="margin-bottom: 32px;">
+          <div style="width: 52px; height: 52px; background: var(--primary); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div style="font-size: 26px; font-weight: 700; color: var(--text); line-height: 1.2;">Bienvenue sur<br><span style="color: var(--primary);">PayWest</span></div>
+          <div style="font-size: 14px; color: var(--muted); margin-top: 8px;">Votre portefeuille mobile en Afrique de l'Ouest</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <div class="input-label">Adresse e-mail</div>
+            <input class="input-field" type="email" placeholder="ex: jean@exemple.com" value="jackhdiel@paywest.ci" readonly />
+          </div>
+          <div>
+            <div class="input-label">Mot de passe</div>
+            <div style="position: relative;">
+              <input class="input-field" type="password" placeholder="••••••••" value="password123" readonly style="padding-right: 44px;" />
+              <div style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); cursor: pointer; font-size: 13px;">👁</div>
+            </div>
+          </div>
+          <div style="text-align: right;"><span class="btn-ghost" style="font-size: 13px; color: var(--primary); padding: 4px 0;">Mot de passe oublié ?</span></div>
+        </div>
+
+        <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
+          <button class="btn-primary" onclick="goScreen('screen-home')">Se connecter</button>
+          <button class="btn-secondary" onclick="goScreen('screen-otp')">Connexion par OTP</button>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; font-size: 13px; color: var(--muted);">
+          Pas encore de compte ? <span style="color: var(--primary); cursor: pointer;">Créer un compte</span>
+        </div>
+      </div>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+
+  <!-- SCREEN: OTP -->
+  <div class="screen" id="screen-otp">
+    <div class="safe-top"></div>
+    <div class="topbar">
+      <div class="topbar-icon" onclick="goScreen('screen-login')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="topbar-title">Vérification OTP</div>
+      <div style="width: 36px;"></div>
+    </div>
+    <div class="scroll-area">
+      <div style="padding: 12px 28px;">
+        <div style="font-size: 15px; color: var(--text2); margin-bottom: 6px;">Entrez votre numéro de téléphone</div>
+        <div style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">Nous vous enverrons un code à 6 chiffres</div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+          <div style="background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-input); padding: 14px 12px; font-size: 15px; color: var(--text); white-space: nowrap;">🇨🇮 +225</div>
+          <input class="input-field" type="tel" placeholder="07 00 00 00 00" value="07 44 12 33 55" readonly />
+        </div>
+
+        <button class="btn-primary" id="otp-send-btn" onclick="startCooldown()">Recevoir le code OTP</button>
+
+        <div id="cooldown-display" style="display:none; text-align:center; margin-top: 12px;">
+          <div class="cooldown">⏱ Renvoyer dans <span id="cooldown-count">60</span>s</div>
+        </div>
+
+        <div style="margin-top: 28px; margin-bottom: 12px;">
+          <div class="input-label">Code OTP reçu par SMS</div>
+          <div style="display: flex; gap: 10px; justify-content: space-between; margin-top: 8px;">
+            <div class="otp-box filled">3</div>
+            <div class="otp-box filled">8</div>
+            <div class="otp-box filled">4</div>
+            <div class="otp-box filled">1</div>
+            <div class="otp-box">_</div>
+            <div class="otp-box">_</div>
+          </div>
+          <div id="otp-error" style="display:none;" class="error-hint">Code incorrect ou expiré. Réessayez.</div>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <button class="btn-primary" onclick="goScreen('screen-home')">Valider le code</button>
+          <button class="btn-ghost" style="width:100%; margin-top: 8px; color: var(--muted);" onclick="document.getElementById('otp-error').style.display='flex'">Simuler erreur OTP</button>
+        </div>
+
+        <div style="background: rgba(240,168,74,0.1); border: 1px solid rgba(240,168,74,0.3); border-radius: 10px; padding: 12px; margin-top: 16px; font-size: 12px; color: var(--warning); line-height: 1.5;">
+          💡 Le code expire après <strong>5 minutes</strong>. Maximum 3 tentatives avant blocage.
+        </div>
+      </div>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+
+  <!-- SCREEN: HOME -->
+  <div class="screen" id="screen-home">
+    <div class="safe-top"></div>
+    <div class="topbar">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="avatar" style="width: 34px; height: 34px; font-size: 13px; cursor: pointer;" onclick="goTab('profile')">JD</div>
+        <div>
+          <div style="font-size: 11px; color: var(--muted);">Bonjour 👋</div>
+          <div style="font-size: 14px; font-weight: 600; color: var(--text);">Jackhdiel Doe</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <div class="topbar-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-area" style="padding-bottom: 90px;">
+      <div style="padding: 0 0 16px;">
+        <div class="balance-card">
+          <div class="balance-label">Solde total</div>
+          <div class="balance-amount">2 847 500 <span style="font-size:18px;font-weight:400;">FCFA</span></div>
+          <div class="balance-variation">▲ +3.4% ce mois</div>
+          <div class="card-number">•••• •••• •••• 4782</div>
+          <div style="position: absolute; top: 16px; right: 16px; font-size: 11px; color: var(--muted); background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 6px; cursor:pointer;" onclick="toggleBalance()">👁 Masquer</div>
+        </div>
+      </div>
+
+      <div class="section-title">Actions rapides</div>
+      <div class="quick-actions">
+        <div class="qa-item" onclick="goScreen('screen-send')">
+          <div class="qa-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="#4A7BF0" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div class="qa-label">Envoyer</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M19 12l-7 7-7-7" stroke="#4CC87A" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div class="qa-label">Recevoir</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#FF6B00" stroke-width="2"/><path d="M2 10h20" stroke="#FF6B00" stroke-width="2"/></svg></div>
+          <div class="qa-label">Payer</div>
+        </div>
+        <div class="qa-item" onclick="goTab('activity')">
+          <div class="qa-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 3h18v4H3zM3 10h18M3 17h18M3 10v10h18V10" stroke="#7B4AF0" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div class="qa-label">Historique</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px 20px 0;">
+        <div class="summary-card">
+          <div class="summary-label">Ce mois · Entrées</div>
+          <div class="summary-value green" style="font-size:17px;">+985 000</div>
+          <div style="font-size:10px; color:var(--muted); margin-top:2px;">FCFA</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Ce mois · Sorties</div>
+          <div class="summary-value red" style="font-size:17px;">-437 500</div>
+          <div style="font-size:10px; color:var(--muted); margin-top:2px;">FCFA</div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-header-title">Transactions récentes</div>
+        <div class="section-header-link" onclick="goTab('activity')">Voir tout</div>
+      </div>
+
+      <div class="tx-row" onclick="goScreen('screen-tx-detail')">
+        <div class="tx-icon" style="background:rgba(255,107,0,0.15);">🍊</div>
+        <div class="tx-info">
+          <div class="tx-name">Orange Money</div>
+          <div class="tx-meta">Auj. 14:32 · Mobile Money</div>
+        </div>
+        <div class="tx-right">
+          <div class="tx-amount positive">+50 000 F</div>
+          <div class="tx-status"><span class="pill pill-success">✓ Reçu</span></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="tx-row" onclick="goScreen('screen-tx-detail')">
+        <div class="tx-icon" style="background:rgba(255,204,0,0.15);">📱</div>
+        <div class="tx-info">
+          <div class="tx-name">MTN Mobile Money</div>
+          <div class="tx-meta">Auj. 11:15 · Transfert</div>
+        </div>
+        <div class="tx-right">
+          <div class="tx-amount negative">-25 000 F</div>
+          <div class="tx-status"><span class="pill pill-pending">⧖ En attente</span></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="tx-row">
+        <div class="tx-icon" style="background:rgba(76,200,122,0.15);">💸</div>
+        <div class="tx-info">
+          <div class="tx-name">Wave</div>
+          <div class="tx-meta">Hier · Envoi</div>
+        </div>
+        <div class="tx-right">
+          <div class="tx-amount negative">-12 500 F</div>
+          <div class="tx-status"><span class="pill pill-success">✓ Envoyé</span></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="tx-row">
+        <div class="tx-icon" style="background:rgba(240,90,90,0.15);">🏪</div>
+        <div class="tx-info">
+          <div class="tx-name">Marché Adjamé</div>
+          <div class="tx-meta">Hier · Paiement</div>
+        </div>
+        <div class="tx-right">
+          <div class="tx-amount negative">-8 750 F</div>
+          <div class="tx-status"><span class="pill pill-success">✓ Payé</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="tabbar" id="tabbar-home">
+      <div class="tab-item active" onclick="goTab('home')">
+        <div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#4A7BF0" stroke-width="2"/><polyline points="9,22 9,12 15,12 15,22" stroke="#4A7BF0" stroke-width="2"/></svg></div>
+        <div class="tab-label" style="color:var(--primary);">Accueil</div>
+        <div class="tab-dot"></div>
+      </div>
+      <div class="tab-item" onclick="goTab('activity')">
+        <div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke="#5A6480" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="tab-label">Activité</div>
+      </div>
+      <div class="tab-item" onclick="goTab('cards')">
+        <div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#5A6480" stroke-width="2"/><path d="M2 10h20" stroke="#5A6480" stroke-width="2"/></svg></div>
+        <div class="tab-label">Cartes</div>
+      </div>
+      <div class="tab-item" onclick="goTab('profile')">
+        <div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="#5A6480" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="#5A6480" stroke-width="2"/></svg></div>
+        <div class="tab-label">Profil</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: ACTIVITY -->
+  <div class="screen" id="screen-activity">
+    <div class="safe-top"></div>
+    <div class="topbar"><div class="topbar-title">Activité</div></div>
+    <div style="padding: 0 20px 12px;">
+      <div style="display: flex; gap: 8px;">
+        <input class="input-field" placeholder="🔍 Rechercher une transaction…" style="flex:1; font-size:13px; padding:10px 14px;" readonly />
+      </div>
+    </div>
+    <div class="summary-row" style="padding-bottom: 12px;">
+      <div class="summary-card">
+        <div class="summary-label">Revenus</div>
+        <div class="summary-value green">+985 000</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Dépenses</div>
+        <div class="summary-value red">-437 500</div>
+      </div>
+    </div>
+    <div style="padding: 0 20px 12px; overflow-x: auto;">
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="setFilter(this)">Tout</button>
+        <button class="filter-tab" onclick="setFilter(this)">Entrant</button>
+        <button class="filter-tab" onclick="setFilter(this)">Sortant</button>
+        <button class="filter-tab" onclick="setFilter(this)">En attente</button>
+      </div>
+    </div>
+    <div class="scroll-area" style="padding-bottom: 90px;">
+      <div class="day-header">Aujourd'hui</div>
+      <div class="tx-row" onclick="goScreen('screen-tx-detail')">
+        <div class="tx-icon" style="background:rgba(255,107,0,0.15);">🍊</div>
+        <div class="tx-info"><div class="tx-name">Orange Money</div><div class="tx-meta">14:32 · Réception</div></div>
+        <div class="tx-right"><div class="tx-amount positive">+50 000 F</div><div class="tx-status"><span class="pill pill-success">✓ Reçu</span></div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="tx-row" onclick="goScreen('screen-tx-detail')">
+        <div class="tx-icon" style="background:rgba(255,204,0,0.15);">📱</div>
+        <div class="tx-info"><div class="tx-name">MTN Mobile Money</div><div class="tx-meta">11:15 · Transfert</div></div>
+        <div class="tx-right"><div class="tx-amount negative">-25 000 F</div><div class="tx-status"><span class="pill pill-pending">⧖ En attente</span></div></div>
+      </div>
+      <div class="day-header">Hier</div>
+      <div class="tx-row">
+        <div class="tx-icon" style="background:rgba(76,200,122,0.15);">💸</div>
+        <div class="tx-info"><div class="tx-name">Wave · Envoi SYNELIA</div><div class="tx-meta">18:44 · Envoi</div></div>
+        <div class="tx-right"><div class="tx-amount negative">-12 500 F</div><div class="tx-status"><span class="pill pill-success">✓ Envoyé</span></div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="tx-row">
+        <div class="tx-icon" style="background:rgba(240,90,90,0.15);">🏪</div>
+        <div class="tx-info"><div class="tx-name">Marché Adjamé</div><div class="tx-meta">10:22 · Paiement QR</div></div>
+        <div class="tx-right"><div class="tx-amount negative">-8 750 F</div><div class="tx-status"><span class="pill pill-success">✓ Payé</span></div></div>
+      </div>
+      <div class="day-header">24 mars</div>
+      <div class="tx-row">
+        <div class="tx-icon" style="background:rgba(74,123,240,0.15);">🏦</div>
+        <div class="tx-info"><div class="tx-name">Virement ATUBA</div><div class="tx-meta">09:00 · Virement bancaire</div></div>
+        <div class="tx-right"><div class="tx-amount positive">+200 000 F</div><div class="tx-status"><span class="pill pill-success">✓ Reçu</span></div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="tx-row">
+        <div class="tx-icon" style="background:rgba(120,120,140,0.15);">⚡</div>
+        <div class="tx-info"><div class="tx-name">Facture CIE Électricité</div><div class="tx-meta">08:30 · Facture</div></div>
+        <div class="tx-right"><div class="tx-amount negative">-35 000 F</div><div class="tx-status"><span class="pill pill-danger">✕ Échouée</span></div></div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab-item" onclick="goTab('home')">
+        <div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#5A6480" stroke-width="2"/><polyline points="9,22 9,12 15,12 15,22" stroke="#5A6480" stroke-width="2"/></svg></div>
+        <div class="tab-label">Accueil</div>
+      </div>
+      <div class="tab-item active" onclick="goTab('activity')">
+        <div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke="#4A7BF0" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="tab-label" style="color:var(--primary);">Activité</div>
+        <div class="tab-dot"></div>
+      </div>
+      <div class="tab-item" onclick="goTab('cards')">
+        <div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#5A6480" stroke-width="2"/><path d="M2 10h20" stroke="#5A6480" stroke-width="2"/></svg></div>
+        <div class="tab-label">Cartes</div>
+      </div>
+      <div class="tab-item" onclick="goTab('profile')">
+        <div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="#5A6480" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="#5A6480" stroke-width="2"/></svg></div>
+        <div class="tab-label">Profil</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: TX DETAIL -->
+  <div class="screen" id="screen-tx-detail">
+    <div class="safe-top"></div>
+    <div class="topbar">
+      <div class="topbar-icon" onclick="history.length > 1 ? goScreen(prevScreen) : goScreen('screen-home')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="topbar-title">Détail</div>
+      <div class="topbar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="1" fill="#F0F2F8"/><circle cx="19" cy="12" r="1" fill="#F0F2F8"/><circle cx="5" cy="12" r="1" fill="#F0F2F8"/></svg></div>
+    </div>
+    <div class="scroll-area" style="padding-bottom: 20px;">
+      <div class="tx-hero">
+        <div class="tx-hero-icon" style="background:rgba(255,107,0,0.2);">🍊</div>
+        <div class="tx-hero-amount">+50 000 FCFA</div>
+        <div class="tx-hero-name">Orange Money</div>
+        <div style="margin-top: 10px;"><span class="pill pill-success">✓ Transaction réussie</span></div>
+      </div>
+
+      <div class="card" style="margin: 16px 20px;">
+        <div class="info-row" style="padding: 0 0 10px;"><div class="info-label">Expéditeur</div><div class="info-value">Aya Koné</div></div>
+        <div class="divider" style="margin: 0;"></div>
+        <div class="info-row" style="padding: 10px 0;"><div class="info-label">Destinataire</div><div class="info-value">Jackhdiel Doe</div></div>
+        <div class="divider" style="margin: 0;"></div>
+        <div class="info-row" style="padding: 10px 0;"><div class="info-label">Réseau</div><div class="info-value" style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#FF6600;display:inline-block;"></span>Orange CI</div></div>
+        <div class="divider" style="margin: 0;"></div>
+        <div class="info-row" style="padding: 10px 0;"><div class="info-label">Motif</div><div class="info-value">Remboursement dîner</div></div>
+        <div class="divider" style="margin: 0;"></div>
+        <div class="info-row" style="padding: 10px 0;"><div class="info-label">Frais</div><div class="info-value">0 FCFA</div></div>
+        <div class="divider" style="margin: 0;"></div>
+        <div class="info-row" style="padding: 10px 0 0;"><div class="info-label">Date & heure</div><div class="info-value">26 mars · 14:32</div></div>
+      </div>
+
+      <div style="padding: 0 20px 16px;">
+        <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">Référence de transaction</div>
+        <div style="display:flex; align-items:center; gap: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;">
+          <div style="flex:1; font-size: 12px; color: var(--text2); font-family: monospace; letter-spacing: 0.5px;">TXN-2026-03-4782-OM</div>
+          <div style="font-size: 12px; color: var(--primary); cursor: pointer; font-weight: 600;">Copier</div>
+        </div>
+      </div>
+
+      <div style="padding: 0 20px; margin-bottom: 16px;">
+        <div style="font-size: 12px; color: var(--muted); margin-bottom: 10px;">Chronologie</div>
+        <div style="display: flex; flex-direction: column; gap: 0;">
+          <div style="display:flex; gap: 12px; align-items: flex-start;">
+            <div style="display:flex;flex-direction:column;align-items:center;"><div style="width:10px;height:10px;border-radius:50%;background:var(--success);margin-top:3px;"></div><div style="width:1px;flex:1;background:var(--border);margin:4px 0;min-height:20px;"></div></div>
+            <div style="padding-bottom:12px;"><div style="font-size:13px;color:var(--text2);font-weight:500;">Initié</div><div style="font-size:11px;color:var(--muted);">14:30:12</div></div>
+          </div>
+          <div style="display:flex; gap: 12px; align-items: flex-start;">
+            <div style="display:flex;flex-direction:column;align-items:center;"><div style="width:10px;height:10px;border-radius:50%;background:var(--success);margin-top:3px;"></div><div style="width:1px;flex:1;background:var(--border);margin:4px 0;min-height:20px;"></div></div>
+            <div style="padding-bottom:12px;"><div style="font-size:13px;color:var(--text2);font-weight:500;">Traitement Orange</div><div style="font-size:11px;color:var(--muted);">14:30:48</div></div>
+          </div>
+          <div style="display:flex; gap: 12px; align-items: flex-start;">
+            <div style="display:flex;flex-direction:column;align-items:center;"><div style="width:10px;height:10px;border-radius:50%;background:var(--success);margin-top:3px;"></div></div>
+            <div><div style="font-size:13px;color:var(--success);font-weight:600;">Confirmé</div><div style="font-size:11px;color:var(--muted);">14:32:05</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn-primary" onclick="goScreen('screen-send')">↺ Renvoyer</button>
+        <button class="btn-secondary">📄 Télécharger le reçu</button>
+        <button class="btn-ghost" style="color:var(--danger);">⚑ Signaler un problème</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: SEND MONEY step 1 -->
+  <div class="screen" id="screen-send">
+    <div class="safe-top"></div>
+    <div class="topbar">
+      <div class="topbar-icon" onclick="goScreen('screen-home')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="topbar-title">Envoyer de l'argent</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="scroll-area" style="padding-bottom: 100px;">
+      <div style="padding: 12px 20px;">
+        <div class="stepper">
+          <div class="step-dot active">1</div>
+          <div class="step-line"></div>
+          <div class="step-dot todo">2</div>
+          <div class="step-line"></div>
+          <div class="step-dot todo">3</div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 6px;">
+          <div style="font-size:10px; color:var(--primary); font-weight:600; text-align:center; width:28px;">Bénéf.</div>
+          <div style="font-size:10px; color:var(--muted); font-weight:500; text-align:center; width:28px;">Montant</div>
+          <div style="font-size:10px; color:var(--muted); font-weight:500; text-align:center; width:28px;">Confirm.</div>
+        </div>
+      </div>
+
+      <div style="padding: 8px 20px; font-size: 14px; color: var(--muted);">Étape 1 / 3 — Bénéficiaire & réseau</div>
+
+      <div style="padding: 0 20px; display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <div class="input-label">Numéro de téléphone</div>
+          <div style="display: flex; gap: 10px;">
+            <div style="background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-input); padding: 14px 12px; font-size: 15px; color: var(--text); white-space: nowrap;">🇨🇮 +225</div>
+            <input class="input-field" type="tel" placeholder="07 00 00 00 00" readonly />
+          </div>
+        </div>
+
+        <div>
+          <div class="input-label">Réseau opérateur</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
+            <div class="op-pill active" onclick="selectOp(this)"><span class="op-dot" style="background:#FF6600;"></span>Orange Money</div>
+            <div class="op-pill" onclick="selectOp(this)"><span class="op-dot" style="background:#FFCC00;"></span>MTN MoMo</div>
+            <div class="op-pill" onclick="selectOp(this)"><span class="op-dot" style="background:#1FA9E0;"></span>Wave</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="input-label">Nom du bénéficiaire (optionnel)</div>
+          <input class="input-field" type="text" placeholder="ex: Aya Koné" readonly />
+        </div>
+
+        <div>
+          <div class="input-label">Contacts récents</div>
+          <div style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; margin-top: 4px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;">
+              <div style="width:46px;height:46px;border-radius:50%;background:rgba(74,123,240,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--primary);">AK</div>
+              <div style="font-size:11px;color:var(--muted);">Aya K.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;">
+              <div style="width:46px;height:46px;border-radius:50%;background:rgba(76,200,122,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--success);">BT</div>
+              <div style="font-size:11px;color:var(--muted);">Bruno T.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;">
+              <div style="width:46px;height:46px;border-radius:50%;background:rgba(240,90,90,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--danger);">FD</div>
+              <div style="font-size:11px;color:var(--muted);">Fatou D.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="position:absolute;bottom:34px;left:0;right:0;padding:16px 20px;background:var(--bg);border-top:1px solid var(--border);">
+      <button class="btn-primary" onclick="goScreen('screen-send2')">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: SEND MONEY step 2 -->
+  <div class="screen" id="screen-send2">
+    <div class="safe-top"></div>
+    <div class="topbar">
+      <div class="topbar-icon" onclick="goScreen('screen-send')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="topbar-title">Montant</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="scroll-area" style="padding-bottom: 100px;">
+      <div style="padding: 12px 20px;">
+        <div class="stepper">
+          <div class="step-dot done">✓</div>
+          <div class="step-line done"></div>
+          <div class="step-dot active">2</div>
+          <div class="step-line"></div>
+          <div class="step-dot todo">3</div>
+        </div>
+      </div>
+
+      <div class="amount-display">
+        <div class="amount-currency">FCFA</div>
+        <div style="margin-top: 4px;">
+          <span class="amount-value" id="amount-val">25 000</span>
+          <span class="amount-cursor"></span>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:6px;">Solde disponible: 2 847 500 FCFA</div>
+      </div>
+
+      <div style="display: flex; gap: 8px; justify-content: center; padding: 0 20px 16px; flex-wrap: wrap;">
+        <div style="padding:6px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--r-pill); font-size:13px; color:var(--text2); cursor:pointer;" onclick="setAmount('5 000')">5 000</div>
+        <div style="padding:6px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--r-pill); font-size:13px; color:var(--text2); cursor:pointer;" onclick="setAmount('10 000')">10 000</div>
+        <div style="padding:6px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--r-pill); font-size:13px; color:var(--text2); cursor:pointer;" onclick="setAmount('25 000')">25 000</div>
+        <div style="padding:6px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--r-pill); font-size:13px; color:var(--text2); cursor:pointer;" onclick="setAmount('50 000')">50 000</div>
+      </div>
+
+      <div style="padding: 0 20px; margin-bottom: 16px;">
+        <div class="numpad">
+          <div class="numpad-key" onclick="appendNum('1')">1</div><div class="numpad-key" onclick="appendNum('2')">2</div><div class="numpad-key" onclick="appendNum('3')">3</div>
+          <div class="numpad-key" onclick="appendNum('4')">4</div><div class="numpad-key" onclick="appendNum('5')">5</div><div class="numpad-key" onclick="appendNum('6')">6</div>
+          <div class="numpad-key" onclick="appendNum('7')">7</div><div class="numpad-key" onclick="appendNum('8')">8</div><div class="numpad-key" onclick="appendNum('9')">9</div>
+          <div class="numpad-key muted" onclick="appendNum('.')">.</div><div class="numpad-key" onclick="appendNum('0')">0</div><div class="numpad-key muted" onclick="deleteNum()">⌫</div>
+        </div>
+      </div>
+
+      <div style="padding: 0 20px;">
+        <div class="input-label">Motif (optionnel)</div>
+        <input class="input-field" placeholder="ex: Remboursement dîner..." style="margin-top: 6px;" readonly />
+      </div>
+    </div>
+    <div style="position:absolute;bottom:34px;left:0;right:0;padding:16px 20px;background:var(--bg);border-top:1px solid var(--border);">
+      <button class="btn-primary" onclick="goScreen('screen-send3')">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: SEND MONEY step 3 -->
+  <div class="screen" id="screen-send3">
+    <div class="safe-top"></div>
+    <div class="topbar">
+      <div class="topbar-icon" onclick="goScreen('screen-send2')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="#F0F2F8" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="topbar-title">Confirmation</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="scroll-area" style="padding-bottom: 100px;">
+      <div style="padding: 12px 20px;">
+        <div class="stepper">
+          <div class="step-dot done">✓</div>
+          <div class="step-line done"></div>
+          <div class="step-dot done">✓</div>
+          <div class="step-line done"></div>
+          <div class="step-dot active">3</div>
+        </div>
+      </div>
+
+      <div style="margin: 8px 20px 20px;">
+        <div class="card">
+          <div style="text-align:center; padding: 8px 0 16px;">
+            <div style="font-size: 12px; color: var(--muted); font-weight: 500;">Vous envoyez</div>
+            <div style="font-size: 28px; font-weight: 700; color: var(--text); margin-top: 4px;" id="confirm-amount">25 000 FCFA</div>
+          </div>
+          <div class="divider" style="margin: 0;"></div>
+          <div class="info-row" style="padding:10px 0;"><div class="info-label">À</div><div class="info-value">Aya Koné · 🍊 +225 07 44 12 33</div></div>
+          <div class="divider" style="margin: 0;"></div>
+          <div class="info-row" style="padding:10px 0;"><div class="info-label">Réseau</div><div class="info-value">Orange Money</div></div>
+          <div class="divider" style="margin: 0;"></div>
+          <div class="info-row" style="padding:10px 0;"><div class="info-label">Frais</div><div class="info-value">0 FCFA</div></div>
+          <div class="divider" style="margin: 0;"></div>
+          <div class="info-row" style="padding:10px 0 0;"><div class="info-label">Total débité</div><div class="info-value" style="font-weight:700; color:var(--text);">25 000 FCFA</div></div>
+        </div>
+      </div>
+
+      <div style="padding: 0 20px 16px;">
+        <div style="font-size:14px; color:var(--text2); text-align:center; margin-bottom: 16px;">Entrez votre code PIN</div>
+        <div class="pin-dots">
+          <div class="pin-dot filled"></div>
+          <div class="pin-dot filled"></div>
+          <div class="pin-dot filled"></div>
+          <div class="pin-dot"></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border-radius: 16px; overflow: hidden; margin-top: 16px;">
+          <div class="numpad-key">1</div><div class="numpad-key">2</div><div class="numpad-key">3</div>
+          <div class="numpad-key">4</div><div class="numpad-key">5</div><div class="numpad-key">6</div>
+          <div class="numpad-key">7</div><div class="numpad-key">8</div><div class="numpad-key">9</div>
+          <div class="numpad-key muted"></div><div class="numpad-key">0</div><div class="numpad-key muted">⌫</div>
+        </div>
+      </div>
+    </div>
+    <div style="position:absolute;bottom:34px;left:0;right:0;padding:16px 20px;background:var(--bg);border-top:1px solid var(--border);">
+      <button class="btn-primary" onclick="goScreen('screen-home')">✓ Confirmer le transfert</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: CARDS -->
+  <div class="screen" id="screen-cards">
+    <div class="safe-top"></div>
+    <div class="topbar"><div class="topbar-title">Mes Cartes</div></div>
+    <div class="scroll-area" style="padding-bottom: 90px;">
+      <div style="padding: 20px;">
+        <div style="background: var(--surface2); border: 2px dashed var(--border); border-radius: 20px; padding: 40px 20px; text-align: center;">
+          <div style="font-size: 36px; margin-bottom: 12px; opacity: 0.4;">💳</div>
+          <div style="font-size: 16px; font-weight: 600; color: var(--text2); margin-bottom: 6px;">Aucune carte liée</div>
+          <div style="font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5;">Ajoutez une carte bancaire pour des paiements encore plus rapides</div>
+          <button class="btn-primary" style="width:auto; padding: 12px 28px;">+ Ajouter une carte</button>
+        </div>
+
+        <div style="margin-top: 24px;">
+          <div style="font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 12px;">Réseaux acceptés</div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 16px; font-size: 13px; color: var(--muted);">Visa</div>
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 16px; font-size: 13px; color: var(--muted);">Mastercard</div>
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 16px; font-size: 13px; color: var(--muted);">UBA</div>
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 16px; font-size: 13px; color: var(--muted);">Ecobank</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab-item" onclick="goTab('home')"><div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#5A6480" stroke-width="2"/><polyline points="9,22 9,12 15,12 15,22" stroke="#5A6480" stroke-width="2"/></svg></div><div class="tab-label">Accueil</div></div>
+      <div class="tab-item" onclick="goTab('activity')"><div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke="#5A6480" stroke-width="2" stroke-linecap="round"/></svg></div><div class="tab-label">Activité</div></div>
+      <div class="tab-item active" onclick="goTab('cards')"><div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#4A7BF0" stroke-width="2"/><path d="M2 10h20" stroke="#4A7BF0" stroke-width="2"/></svg></div><div class="tab-label" style="color:var(--primary);">Cartes</div><div class="tab-dot"></div></div>
+      <div class="tab-item" onclick="goTab('profile')"><div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="#5A6480" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="#5A6480" stroke-width="2"/></svg></div><div class="tab-label">Profil</div></div>
+    </div>
+  </div>
+
+  <!-- SCREEN: PROFILE -->
+  <div class="screen" id="screen-profile">
+    <div class="safe-top"></div>
+    <div class="topbar"><div class="topbar-title">Profil</div></div>
+    <div class="scroll-area" style="padding-bottom: 90px;">
+      <div style="text-align: center; padding: 20px 20px 28px;">
+        <div class="avatar" style="margin: 0 auto 12px;">JD</div>
+        <div style="font-size: 18px; font-weight: 700; color: var(--text);">Jackhdiel Doe</div>
+        <div style="font-size: 13px; color: var(--muted); margin-top: 4px;">+225 07 44 12 33 55</div>
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(76,200,122,0.15); padding: 5px 14px; border-radius: var(--r-pill); margin-top: 8px;">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--success);"></span>
+          <span style="font-size: 12px; color: var(--success); font-weight: 600;">Compte vérifié</span>
+        </div>
+      </div>
+
+      <div class="section-title">Compte</div>
+      <div class="settings-row">
+        <div class="settings-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="#5A6480" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="#5A6480" stroke-width="2"/></svg></div>
+        <div class="settings-label">Informations personnelles</div>
+        <div class="settings-chevron">›</div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="#5A6480" stroke-width="2"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="#5A6480" stroke-width="2"/></svg></div>
+        <div class="settings-label">Sécurité & PIN</div>
+        <div class="settings-chevron">›</div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="#5A6480" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="settings-label">Notifications</div>
+        <div class="settings-chevron">›</div>
+      </div>
+
+      <div class="section-title">Préférences</div>
+      <div class="settings-row">
+        <div class="settings-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#5A6480" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="#5A6480" stroke-width="2"/></svg></div>
+        <div class="settings-label">Paramètres</div>
+        <div class="settings-chevron">›</div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#5A6480" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#5A6480" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="settings-label">Support & Aide</div>
+        <div class="settings-chevron">›</div>
+      </div>
+
+      <div style="padding: 20px;">
+        <button class="btn-secondary" style="border-color:rgba(240,90,90,0.3); color:var(--danger);" onclick="goScreen('screen-login')">Se déconnecter</button>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab-item" onclick="goTab('home')"><div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#5A6480" stroke-width="2"/><polyline points="9,22 9,12 15,12 15,22" stroke="#5A6480" stroke-width="2"/></svg></div><div class="tab-label">Accueil</div></div>
+      <div class="tab-item" onclick="goTab('activity')"><div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke="#5A6480" stroke-width="2" stroke-linecap="round"/></svg></div><div class="tab-label">Activité</div></div>
+      <div class="tab-item" onclick="goTab('cards')"><div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#5A6480" stroke-width="2"/><path d="M2 10h20" stroke="#5A6480" stroke-width="2"/></svg></div><div class="tab-label">Cartes</div></div>
+      <div class="tab-item active" onclick="goTab('profile')"><div class="tab-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="#4A7BF0" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="#4A7BF0" stroke-width="2"/></svg></div><div class="tab-label" style="color:var(--primary);">Profil</div><div class="tab-dot"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- NAVIGATION CONTROLS -->
+<div style="color: #ccc; font-family: -apple-system, sans-serif;">
+  <div class="nav-label" style="color:#5A6480;">Écrans</div>
+  <div class="nav-controls">
+    <button class="nav-btn current" onclick="navTo('screen-login')">🔐 Login</button>
+    <button class="nav-btn" onclick="navTo('screen-otp')">📱 Vérification OTP</button>
+    <button class="nav-btn" onclick="navTo('screen-home')">🏠 Home (Dashboard)</button>
+    <button class="nav-btn" onclick="navTo('screen-activity')">📊 Activité</button>
+    <button class="nav-btn" onclick="navTo('screen-tx-detail')">🧾 Détail transaction</button>
+    <button class="nav-btn" onclick="navTo('screen-send')">↗ Envoyer — Étape 1</button>
+    <button class="nav-btn" onclick="navTo('screen-send2')">↗ Envoyer — Étape 2</button>
+    <button class="nav-btn" onclick="navTo('screen-send3')">↗ Envoyer — Étape 3</button>
+    <button class="nav-btn" onclick="navTo('screen-cards')">💳 Cartes</button>
+    <button class="nav-btn" onclick="navTo('screen-profile')">👤 Profil</button>
+  </div>
+
+  <div class="nav-label" style="color:#5A6480; margin-top:20px;">Design System</div>
+  <div style="background:#10152A; border:1px solid #252D45; border-radius:12px; padding:14px; width:160px;">
+    <div style="font-size:11px; color:#5A6480; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Couleurs</div>
+    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+      <div title="bg #0B0F1A" style="width:22px;height:22px;border-radius:6px;background:#0B0F1A;border:1px solid #333;"></div>
+      <div title="surface #10152A" style="width:22px;height:22px;border-radius:6px;background:#10152A;border:1px solid #333;"></div>
+      <div title="border #252D45" style="width:22px;height:22px;border-radius:6px;background:#252D45;"></div>
+      <div title="primary #4A7BF0" style="width:22px;height:22px;border-radius:6px;background:#4A7BF0;"></div>
+      <div title="success #4CC87A" style="width:22px;height:22px;border-radius:6px;background:#4CC87A;"></div>
+      <div title="danger #F05A5A" style="width:22px;height:22px;border-radius:6px;background:#F05A5A;"></div>
+      <div title="warning #F0A84A" style="width:22px;height:22px;border-radius:6px;background:#F0A84A;"></div>
+      <div title="orange #FF6B00" style="width:22px;height:22px;border-radius:6px;background:#FF6B00;"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+let currentScreen = 'screen-login';
+let prevScreen = 'screen-home';
+let cooldownInterval = null;
+let numAmount = '25000';
+
+function goScreen(id) {
+  prevScreen = currentScreen;
+  document.getElementById(currentScreen).classList.remove('active');
+  currentScreen = id;
+  document.getElementById(id).classList.add('active');
+  updateNavBtns(id);
+}
+
+function goTab(tab) {
+  const map = { home:'screen-home', activity:'screen-activity', cards:'screen-cards', profile:'screen-profile' };
+  goScreen(map[tab]);
+}
+
+function navTo(id) {
+  goScreen(id);
+}
+
+function updateNavBtns(id) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('current'));
+  const btns = document.querySelectorAll('.nav-btn');
+  btns.forEach(b => { if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(id)) b.classList.add('current'); });
+}
+
+function startCooldown() {
+  document.getElementById('otp-send-btn').disabled = true;
+  document.getElementById('cooldown-display').style.display = 'block';
+  let t = 60;
+  document.getElementById('cooldown-count').textContent = t;
+  clearInterval(cooldownInterval);
+  cooldownInterval = setInterval(() => {
+    t--;
+    document.getElementById('cooldown-count').textContent = t;
+    if (t <= 0) {
+      clearInterval(cooldownInterval);
+      document.getElementById('otp-send-btn').disabled = false;
+      document.getElementById('cooldown-display').style.display = 'none';
+    }
+  }, 1000);
+}
+
+function setFilter(el) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function selectOp(el) {
+  document.querySelectorAll('.op-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function setAmount(a) {
+  numAmount = a.replace(/\s/g,'');
+  document.getElementById('amount-val').textContent = a;
+}
+
+function appendNum(d) {
+  if (d === '.' && numAmount.includes('.')) return;
+  if (numAmount === '0') numAmount = d === '.' ? '0.' : d;
+  else numAmount += d;
+  document.getElementById('amount-val').textContent = parseInt(numAmount||0).toLocaleString('fr-FR');
+  const ca = document.getElementById('confirm-amount');
+  if (ca) ca.textContent = parseInt(numAmount||0).toLocaleString('fr-FR') + ' FCFA';
+}
+
+function deleteNum() {
+  numAmount = numAmount.slice(0,-1) || '0';
+  document.getElementById('amount-val').textContent = parseInt(numAmount||0).toLocaleString('fr-FR');
+}
+
+function toggleBalance() {
+  const el = document.querySelector('.balance-amount');
+  if (el.textContent.includes('•')) {
+    el.textContent = '2 847 500 FCFA';
+    el.style.letterSpacing = '-0.5px';
+  } else {
+    el.textContent = '••••••• FCFA';
+    el.style.letterSpacing = '4px';
+  }
+}
+</script>
